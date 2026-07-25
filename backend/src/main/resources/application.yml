@@ -1,8 +1,7 @@
 spring:
+  application:
+    name: sentinel
   datasource:
-    url: jdbc:postgresql://localhost:5432/sentinel_auth
-    username: sentinel
-    password: sentinel
     hikari:
       maximum-pool-size: 20
   jpa:

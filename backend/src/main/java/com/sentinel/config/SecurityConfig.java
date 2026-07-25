@@ -17,7 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -47,7 +46,7 @@ public class SecurityConfig {
                         .authenticated())
                 .oauth2Login(oauth2 -> oauth2.authorizationEndpoint(
                                 authorization -> authorization.baseUri("/oauth2/authorization"))
-                        .redirectionEndpoint(redirection -> redirection.baseUri("/login/oauth2/code/*"))
+                        .redirectionEndpoint(redirection -> redirection.baseUri("/login/oauth2/code"))
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler))
@@ -64,10 +63,5 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
     }
 }

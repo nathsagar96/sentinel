@@ -1,7 +1,0 @@
-target/
-backend/target/
-.env
-.DS_Store
-.idea/
-*.iml
-*.log

@@ -4,11 +4,11 @@ const BACKEND_URL = 'http://localhost:8080';
 
 export function SocialLoginButtons() {
   const handleGoogleLogin = () => {
-    window.location.href = `${BACKEND_URL}/oauth2/authorize/google`;
+    window.location.href = `${BACKEND_URL}/oauth2/authorization/google`;
   };
 
   const handleGithubLogin = () => {
-    window.location.href = `${BACKEND_URL}/oauth2/authorize/github`;
+    window.location.href = `${BACKEND_URL}/oauth2/authorization/github`;
   };
 
   return (

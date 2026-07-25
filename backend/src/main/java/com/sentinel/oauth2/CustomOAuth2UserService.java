@@ -10,16 +10,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
 
     @Override
     public OAuth2User loadUser(@NonNull OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -92,13 +89,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String fetchPrimaryEmailFromGitHub(String accessToken) {
         try {
-            List<Map<String, Object>> emails = restTemplate
-                    .exchange(
-                            "https://api.github.com/user/emails",
-                            HttpMethod.GET,
-                            new HttpEntity<>(createHeaders(accessToken)),
-                            new ParameterizedTypeReference<List<Map<String, Object>>>() {})
-                    .getBody();
+            List<Map<String, Object>> emails = restClient
+                    .get()
+                    .uri("https://api.github.com/user/emails")
+                    .headers(headers -> {
+                        headers.setBearerAuth(accessToken);
+                        headers.set("Accept", "application/vnd.github+json");
+                    })
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
 
             if (emails != null) {
                 for (Map<String, Object> entry : emails) {
@@ -113,12 +112,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             log.warn("Failed to fetch primary email from GitHub: {}", e.getMessage());
         }
         return null;
-    }
-
-    private HttpHeaders createHeaders(String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        headers.set("Accept", "application/vnd.github+json");
-        return headers;
     }
 }
