@@ -1,8 +1,10 @@
 package com.sentinel.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-public sealed abstract class ApplicationException extends RuntimeException
+@Getter
+public abstract sealed class ApplicationException extends RuntimeException
         permits ResourceNotFoundException, DuplicateResourceException, BadRequestException {
 
     private final HttpStatus httpStatus;
@@ -10,9 +12,5 @@ public sealed abstract class ApplicationException extends RuntimeException
     protected ApplicationException(String message, HttpStatus httpStatus) {
         super(message);
         this.httpStatus = httpStatus;
-    }
-
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
     }
 }

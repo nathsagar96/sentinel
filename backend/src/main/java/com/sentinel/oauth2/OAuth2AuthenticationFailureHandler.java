@@ -3,15 +3,15 @@ package com.sentinel.oauth2;
 import com.sentinel.config.AppProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -21,13 +21,15 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     private final AppProperties appProperties;
 
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request,
-                                         HttpServletResponse response,
-                                         AuthenticationException exception) throws IOException {
+    public void onAuthenticationFailure(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            AuthenticationException exception)
+            throws IOException {
         log.error("OAuth2 authentication failed: {}", exception.getMessage());
 
-        String redirectUrl = appProperties.oauth2().redirectUri().replace("/oauth2/redirect", "/login")
-                + "?error=" + URLEncoder.encode(exception.getLocalizedMessage(), StandardCharsets.UTF_8);
+        String redirectUrl = appProperties.oauth2().redirectUri().replace("/oauth2/redirect", "/login") + "?error="
+                + URLEncoder.encode(exception.getLocalizedMessage(), StandardCharsets.UTF_8);
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }

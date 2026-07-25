@@ -37,18 +37,19 @@ public class AuthService {
     }
 
     public User login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository
+                .findByEmail(request.email())
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
         if (user.getPassword() == null) {
-            String providerDisplay = switch (user.getProvider()) {
-                case GOOGLE -> "Google";
-                case GITHUB -> "GitHub";
-                default -> user.getProvider().name();
-            };
+            String providerDisplay =
+                    switch (user.getProvider()) {
+                        case GOOGLE -> "Google";
+                        case GITHUB -> "GitHub";
+                        default -> user.getProvider().name();
+                    };
             BadRequestException ex = new BadRequestException(
-                    "This account uses " + providerDisplay + ". Please sign in with " + providerDisplay + "."
-            );
+                    "This account uses " + providerDisplay + ". Please sign in with " + providerDisplay + ".");
             ex.setProvider(providerDisplay);
             throw ex;
         }
@@ -61,8 +62,7 @@ public class AuthService {
     }
 
     public UserResponse getCurrentUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
         return UserResponse.from(user);
     }
 }

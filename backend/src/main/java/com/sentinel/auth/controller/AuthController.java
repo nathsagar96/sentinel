@@ -11,13 +11,16 @@ import com.sentinel.user.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,13 +41,16 @@ public class AuthController {
     public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest request) {
         User user = authService.login(request);
 
-        String accessToken = jwtTokenProvider.generateAccessToken(
-                user.getId(), user.getEmail(), user.getName());
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getName());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookieUtils.createAccessTokenCookie(accessToken).toString())
-                .header(HttpHeaders.SET_COOKIE, cookieUtils.createRefreshTokenCookie(refreshToken).toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieUtils.createAccessTokenCookie(accessToken).toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieUtils.createRefreshTokenCookie(refreshToken).toString())
                 .body(UserResponse.from(user));
     }
 
@@ -58,19 +64,24 @@ public class AuthController {
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
         UserResponse user = authService.getCurrentUser(userId);
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(
-                user.id(), user.email(), user.name());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.id(), user.email(), user.name());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookieUtils.createAccessTokenCookie(newAccessToken).toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieUtils.createAccessTokenCookie(newAccessToken).toString())
                 .build();
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookieUtils.clearAccessTokenCookie().toString())
-                .header(HttpHeaders.SET_COOKIE, cookieUtils.clearRefreshTokenCookie().toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieUtils.clearAccessTokenCookie().toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieUtils.clearRefreshTokenCookie().toString())
                 .build();
     }
 

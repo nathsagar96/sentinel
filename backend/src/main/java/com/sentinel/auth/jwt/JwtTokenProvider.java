@@ -1,14 +1,15 @@
 package com.sentinel.auth.jwt;
 
 import com.sentinel.config.AppProperties;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -38,7 +39,8 @@ public class JwtTokenProvider {
 
     public String generateRefreshToken(Long userId) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + jwtProperties.refreshTokenExpiry().toMillis());
+        Date expiry =
+                new Date(now.getTime() + jwtProperties.refreshTokenExpiry().toMillis());
 
         return Jwts.builder()
                 .subject(userId.toString())
@@ -49,11 +51,8 @@ public class JwtTokenProvider {
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims =
+                Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
         return Long.parseLong(claims.getSubject());
     }
 

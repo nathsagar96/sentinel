@@ -1,12 +1,12 @@
 package com.sentinel.auth.jwt;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.sentinel.config.AppProperties;
+import java.time.Duration;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtTokenProviderTest {
 
@@ -15,10 +15,10 @@ class JwtTokenProviderTest {
     @BeforeEach
     void setUp() {
         AppProperties appProperties = new AppProperties(
-                new AppProperties.JwtProperties("defaultDevSecretKeyThatIsAtLeast32CharactersLong", Duration.ofMinutes(15), Duration.ofDays(7)),
-                new AppProperties.CorsProperties("http://localhost:5173"),
-                new AppProperties.OAuth2Properties("http://localhost:5173/oauth2/redirect")
-        );
+                new AppProperties.JwtProperties(
+                        "defaultDevSecretKeyThatIsAtLeast32CharactersLong", Duration.ofMinutes(15), Duration.ofDays(7)),
+                new AppProperties.CorsProperties(List.of("http://localhost:5173")),
+                new AppProperties.OAuth2Properties("http://localhost:5173/oauth2/redirect"));
         jwtTokenProvider = new JwtTokenProvider(appProperties);
     }
 

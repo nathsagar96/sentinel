@@ -3,9 +3,16 @@ package com.sentinel.oauth2;
 import com.sentinel.user.entity.AuthProvider;
 import com.sentinel.user.entity.User;
 import com.sentinel.user.repository.UserRepository;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -13,10 +20,6 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +30,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final RestTemplate restTemplate;
 
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    public OAuth2User loadUser(@NonNull OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
@@ -38,13 +41,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             email = fetchPrimaryEmailFromGitHub(userRequest.getAccessToken().getTokenValue());
         }
         if (email == null) {
-            email = userInfo.provider().name().toLowerCase() + "-" + userInfo.providerId() + "@placeholder.sentinel.local";
+            email = userInfo.provider().name().toLowerCase() + "-" + userInfo.providerId()
+                    + "@placeholder.sentinel.local";
             log.warn("Email not available from {} OAuth2; generated placeholder: {}", userInfo.provider(), email);
         }
 
-        User user = userRepository.findByEmail(email)
+        String resolvedEmail = email;
+        User user = userRepository
+                .findByEmail(resolvedEmail)
                 .map(existingUser -> updateExistingUser(existingUser, userInfo))
-                .orElseGet(() -> createNewUser(userInfo, email));
+                .orElseGet(() -> createNewUser(userInfo, resolvedEmail));
 
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
         attributes.put("internal_user_id", user.getId());
@@ -52,14 +58,20 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(
                 List.of(() -> "ROLE_USER"),
                 attributes,
-                userRequest.getClientRegistration().getProviderDetails()
-                        .getUserInfoEndpoint().getUserNameAttributeName()
-        );
+                userRequest
+                        .getClientRegistration()
+                        .getProviderDetails()
+                        .getUserInfoEndpoint()
+                        .getUserNameAttributeName());
     }
 
     private User updateExistingUser(User user, OAuth2UserInfo userInfo) {
-        user.setName(userInfo.name());
-        user.setAvatarUrl(userInfo.avatarUrl());
+        if (user.getName() == null) {
+            user.setName(userInfo.name());
+        }
+        if (user.getAvatarUrl() == null) {
+            user.setAvatarUrl(userInfo.avatarUrl());
+        }
         if (user.getProvider() != userInfo.provider()) {
             user.setProvider(userInfo.provider());
             user.setProviderId(userInfo.providerId());
@@ -80,12 +92,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String fetchPrimaryEmailFromGitHub(String accessToken) {
         try {
-            List<Map<String, Object>> emails = restTemplate.exchange(
-                    "https://api.github.com/user/emails",
-                    org.springframework.http.HttpMethod.GET,
-                    new org.springframework.http.HttpEntity<>(createHeaders(accessToken)),
-                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-            ).getBody();
+            List<Map<String, Object>> emails = restTemplate
+                    .exchange(
+                            "https://api.github.com/user/emails",
+                            HttpMethod.GET,
+                            new HttpEntity<>(createHeaders(accessToken)),
+                            new ParameterizedTypeReference<List<Map<String, Object>>>() {})
+                    .getBody();
 
             if (emails != null) {
                 for (Map<String, Object> entry : emails) {
@@ -102,8 +115,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return null;
     }
 
-    private org.springframework.http.HttpHeaders createHeaders(String accessToken) {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+    private HttpHeaders createHeaders(String accessToken) {
+        HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         headers.set("Accept", "application/vnd.github+json");
         return headers;
