@@ -1,0 +1,42 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sentinel_auth
+    username: sentinel
+    password: sentinel
+    hikari:
+      maximum-pool-size: 20
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: email, profile
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: user:email, read:user
+  threads:
+    virtual:
+      enabled: true
+  mvc:
+    problemdetails:
+      enabled: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:defaultDevSecretKeyThatIsAtLeast32CharactersLong}
+    access-token-expiry: 15m
+    refresh-token-expiry: 7d
+  cors:
+    allowed-origins: http://localhost:5173
+  oauth2:
+    redirect-uri: http://localhost:5173/oauth2/redirect
