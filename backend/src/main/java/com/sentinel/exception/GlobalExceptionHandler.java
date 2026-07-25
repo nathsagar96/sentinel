@@ -25,6 +25,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(ex.getHttpStatus(), ex.getMessage());
         problem.setTitle(ex.getClass().getSimpleName());
         problem.setProperty("timestamp", Instant.now());
+        if (ex instanceof BadRequestException badRequest && badRequest.getProvider() != null) {
+            problem.setProperty("provider", badRequest.getProvider());
+        }
+        return problem;
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleGenericException(Exception ex) {
+        log.error("Unexpected error occurred", ex);
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), "Internal server error");
+        problem.setTitle("InternalServerError");
+        problem.setProperty("timestamp", Instant.now());
         return problem;
     }
 

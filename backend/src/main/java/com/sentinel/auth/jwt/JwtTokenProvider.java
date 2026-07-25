@@ -2,12 +2,12 @@ package com.sentinel.auth.jwt;
 
 import com.sentinel.config.AppProperties;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
@@ -19,8 +19,7 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(AppProperties appProperties) {
         this.jwtProperties = appProperties.jwt();
-        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.secret());
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.key = Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateAccessToken(Long userId, String email, String name) {

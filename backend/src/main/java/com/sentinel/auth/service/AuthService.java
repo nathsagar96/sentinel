@@ -40,7 +40,20 @@ public class AuthService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
-        if (user.getPassword() == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (user.getPassword() == null) {
+            String providerDisplay = switch (user.getProvider()) {
+                case GOOGLE -> "Google";
+                case GITHUB -> "GitHub";
+                default -> user.getProvider().name();
+            };
+            BadRequestException ex = new BadRequestException(
+                    "This account uses " + providerDisplay + ". Please sign in with " + providerDisplay + "."
+            );
+            ex.setProvider(providerDisplay);
+            throw ex;
+        }
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new BadRequestException("Invalid email or password");
         }
 

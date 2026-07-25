@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.List;
 
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(
@@ -20,7 +21,7 @@ public record AppProperties(
     ) {}
 
     public record CorsProperties(
-            @NotBlank String allowedOrigins
+            List<@NotBlank String> allowedOrigins
     ) {}
 
     public record OAuth2Properties(

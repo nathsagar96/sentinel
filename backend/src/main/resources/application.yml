@@ -37,6 +37,7 @@ app:
     access-token-expiry: 15m
     refresh-token-expiry: 7d
   cors:
-    allowed-origins: http://localhost:5173
+    allowed-origins:
+      - http://localhost:5173
   oauth2:
     redirect-uri: http://localhost:5173/oauth2/redirect
