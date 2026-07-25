@@ -1,0 +1,61 @@
+package com.sentinel.auth.jwt;
+
+import com.sentinel.config.AppProperties;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseCookie;
+
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class CookieUtilsTest {
+
+    private CookieUtils cookieUtils;
+
+    @BeforeEach
+    void setUp() {
+        AppProperties appProperties = new AppProperties(
+                new AppProperties.JwtProperties("defaultDevSecretKeyThatIsAtLeast32CharactersLong", Duration.ofMinutes(15), Duration.ofDays(7)),
+                new AppProperties.CorsProperties("http://localhost:5173"),
+                new AppProperties.OAuth2Properties("http://localhost:5173/oauth2/redirect")
+        );
+        cookieUtils = new CookieUtils(appProperties);
+    }
+
+    @Test
+    void testCreateAccessTokenCookie() {
+        ResponseCookie cookie = cookieUtils.createAccessTokenCookie("sample-token");
+        assertThat(cookie.getName()).isEqualTo("access_token");
+        assertThat(cookie.getValue()).isEqualTo("sample-token");
+        assertThat(cookie.isHttpOnly()).isTrue();
+        assertThat(cookie.getPath()).isEqualTo("/");
+        assertThat(cookie.getMaxAge()).isEqualTo(Duration.ofMinutes(15));
+    }
+
+    @Test
+    void testCreateRefreshTokenCookie() {
+        ResponseCookie cookie = cookieUtils.createRefreshTokenCookie("sample-token");
+        assertThat(cookie.getName()).isEqualTo("refresh_token");
+        assertThat(cookie.getValue()).isEqualTo("sample-token");
+        assertThat(cookie.isHttpOnly()).isTrue();
+        assertThat(cookie.getPath()).isEqualTo("/api/auth/refresh");
+        assertThat(cookie.getMaxAge()).isEqualTo(Duration.ofDays(7));
+    }
+
+    @Test
+    void testClearAccessTokenCookie() {
+        ResponseCookie cookie = cookieUtils.clearAccessTokenCookie();
+        assertThat(cookie.getName()).isEqualTo("access_token");
+        assertThat(cookie.getValue()).isEmpty();
+        assertThat(cookie.getMaxAge()).isEqualTo(Duration.ZERO);
+    }
+
+    @Test
+    void testClearRefreshTokenCookie() {
+        ResponseCookie cookie = cookieUtils.clearRefreshTokenCookie();
+        assertThat(cookie.getName()).isEqualTo("refresh_token");
+        assertThat(cookie.getValue()).isEmpty();
+        assertThat(cookie.getMaxAge()).isEqualTo(Duration.ZERO);
+    }
+}

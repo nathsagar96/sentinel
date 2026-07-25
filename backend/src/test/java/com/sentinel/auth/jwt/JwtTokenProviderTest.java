@@ -1,0 +1,45 @@
+package com.sentinel.auth.jwt;
+
+import com.sentinel.config.AppProperties;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class JwtTokenProviderTest {
+
+    private JwtTokenProvider jwtTokenProvider;
+
+    @BeforeEach
+    void setUp() {
+        AppProperties appProperties = new AppProperties(
+                new AppProperties.JwtProperties("defaultDevSecretKeyThatIsAtLeast32CharactersLong", Duration.ofMinutes(15), Duration.ofDays(7)),
+                new AppProperties.CorsProperties("http://localhost:5173"),
+                new AppProperties.OAuth2Properties("http://localhost:5173/oauth2/redirect")
+        );
+        jwtTokenProvider = new JwtTokenProvider(appProperties);
+    }
+
+    @Test
+    void testGenerateAccessTokenAndExtractUserId() {
+        String token = jwtTokenProvider.generateAccessToken(123L, "test@example.com", "Test User");
+        assertThat(token).isNotBlank();
+        assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        assertThat(jwtTokenProvider.getUserIdFromToken(token)).isEqualTo(123L);
+    }
+
+    @Test
+    void testGenerateRefreshTokenAndExtractUserId() {
+        String token = jwtTokenProvider.generateRefreshToken(456L);
+        assertThat(token).isNotBlank();
+        assertThat(jwtTokenProvider.validateToken(token)).isTrue();
+        assertThat(jwtTokenProvider.getUserIdFromToken(token)).isEqualTo(456L);
+    }
+
+    @Test
+    void testInvalidToken() {
+        assertThat(jwtTokenProvider.validateToken("invalid.token.string")).isFalse();
+    }
+}
