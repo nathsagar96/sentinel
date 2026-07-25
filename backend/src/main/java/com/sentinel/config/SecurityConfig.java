@@ -1,6 +1,9 @@
 package com.sentinel.config;
 
 import com.sentinel.auth.jwt.JwtAuthenticationFilter;
+import com.sentinel.oauth2.CustomOAuth2UserService;
+import com.sentinel.oauth2.OAuth2AuthenticationSuccessHandler;
+import com.sentinel.oauth2.OAuth2AuthenticationFailureHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +25,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2FailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,6 +44,11 @@ public class SecurityConfig {
                     "/login/oauth2/**"
                 ).permitAll()
                 .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(oAuth2SuccessHandler)
+                .failureHandler(oAuth2FailureHandler)
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
