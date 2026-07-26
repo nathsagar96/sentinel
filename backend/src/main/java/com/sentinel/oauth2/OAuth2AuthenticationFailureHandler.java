@@ -4,14 +4,14 @@ import com.sentinel.config.AppProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @RequiredArgsConstructor
@@ -28,9 +28,19 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
             throws IOException {
         log.error("OAuth2 authentication failed: {}", exception.getMessage());
 
-        String redirectUrl = appProperties.oauth2().redirectUri().replace("/oauth2/redirect", "/login") + "?error="
-                + URLEncoder.encode(exception.getLocalizedMessage(), StandardCharsets.UTF_8);
+        UriComponents redirectUri = UriComponentsBuilder.fromUriString(
+                        appProperties.oauth2().redirectUri())
+                .build();
 
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+        String loginUrl = UriComponentsBuilder.newInstance()
+                .scheme(redirectUri.getScheme())
+                .host(redirectUri.getHost())
+                .port(redirectUri.getPort())
+                .path("/login")
+                .queryParam("error", "oauth2_failure")
+                .build()
+                .toUriString();
+
+        getRedirectStrategy().sendRedirect(request, response, loginUrl);
     }
 }
