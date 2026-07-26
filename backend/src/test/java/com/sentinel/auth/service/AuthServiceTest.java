@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.sentinel.auth.dto.SignupRequest;
 import com.sentinel.auth.dto.UserResponse;
+import com.sentinel.auth.jwt.JwtTokenProvider;
 import com.sentinel.exception.BadRequestException;
 import com.sentinel.exception.DuplicateResourceException;
 import com.sentinel.exception.ResourceNotFoundException;
@@ -31,6 +32,12 @@ class AuthServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private AuthService authService;
@@ -157,6 +164,72 @@ class AuthServiceTest {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.getCurrentUser(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("User not found");
+    }
+
+    @Test
+    void shouldIssueTokens() {
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", "Test User"))
+                .thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("refresh-token");
+
+        AuthService.AuthTokens tokens = authService.issueTokens(1L, "test@example.com", "Test User");
+
+        assertThat(tokens.accessToken()).isEqualTo("access-token");
+        assertThat(tokens.refreshToken()).isEqualTo("refresh-token");
+        verify(refreshTokenService).storeRefreshToken(1L, "refresh-token");
+    }
+
+    @Test
+    void shouldRefreshTokens() {
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .name("Test User")
+                .provider(AuthProvider.LOCAL)
+                .build();
+        when(jwtTokenProvider.getUserIdFromToken("old-refresh-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("new-refresh-token");
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", "Test User"))
+                .thenReturn("new-access-token");
+
+        AuthService.AuthTokens tokens = authService.refreshTokens("old-refresh-token");
+
+        assertThat(tokens.accessToken()).isEqualTo("new-access-token");
+        assertThat(tokens.refreshToken()).isEqualTo("new-refresh-token");
+        verify(refreshTokenService).verifyRefreshToken("old-refresh-token");
+        verify(refreshTokenService).rotateRefreshToken("old-refresh-token", "new-refresh-token");
+    }
+
+    @Test
+    void shouldRevokeRefreshToken() {
+        authService.revokeRefreshToken("some-token");
+        verify(refreshTokenService).revokeRefreshToken("some-token");
+    }
+
+    @Test
+    void shouldFindById() {
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .name("Test User")
+                .provider(AuthProvider.LOCAL)
+                .build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        UserResponse response = authService.findById(1L);
+
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldThrow_whenUserNotFound_findById() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.findById(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User not found");
     }

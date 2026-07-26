@@ -1,12 +1,9 @@
 package com.sentinel.oauth2;
 
+import com.sentinel.auth.dto.UserResponse;
 import com.sentinel.auth.jwt.CookieUtils;
-import com.sentinel.auth.jwt.JwtTokenProvider;
-import com.sentinel.auth.service.RefreshTokenService;
+import com.sentinel.auth.service.AuthService;
 import com.sentinel.config.AppProperties;
-import com.sentinel.exception.ResourceNotFoundException;
-import com.sentinel.user.entity.User;
-import com.sentinel.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -23,11 +20,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
     private final CookieUtils cookieUtils;
     private final AppProperties appProperties;
-    private final UserRepository userRepository;
-    private final RefreshTokenService refreshTokenService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -36,16 +31,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Long userId = (Long) oAuth2User.getAttributes().get("internal_user_id");
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
-
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getName());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
-        refreshTokenService.storeRefreshToken(user.getId(), refreshToken);
+        UserResponse user = authService.findById(userId);
+        AuthService.AuthTokens tokens = authService.issueTokens(user.id(), user.email(), user.name());
 
         response.addHeader(
-                "Set-Cookie", cookieUtils.createAccessTokenCookie(accessToken).toString());
+                "Set-Cookie",
+                cookieUtils.createAccessTokenCookie(tokens.accessToken()).toString());
         response.addHeader(
-                "Set-Cookie", cookieUtils.createRefreshTokenCookie(refreshToken).toString());
+                "Set-Cookie",
+                cookieUtils.createRefreshTokenCookie(tokens.refreshToken()).toString());
 
         String redirectUrl = appProperties.oauth2().redirectUri();
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);

@@ -3,6 +3,7 @@ package com.sentinel.auth.service;
 import com.sentinel.auth.dto.LoginRequest;
 import com.sentinel.auth.dto.SignupRequest;
 import com.sentinel.auth.dto.UserResponse;
+import com.sentinel.auth.jwt.JwtTokenProvider;
 import com.sentinel.exception.BadRequestException;
 import com.sentinel.exception.DuplicateResourceException;
 import com.sentinel.exception.ResourceNotFoundException;
@@ -23,6 +24,10 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
+
+    public record AuthTokens(String accessToken, String refreshToken) {}
 
     @Transactional
     public UserResponse signup(SignupRequest request) {
@@ -72,6 +77,33 @@ public class AuthService {
         }
 
         log.info("AUTH_SUCCESS user_id={} provider=LOCAL", user.getId());
+        return UserResponse.from(user);
+    }
+
+    public AuthTokens issueTokens(Long userId, String email, String name) {
+        String accessToken = jwtTokenProvider.generateAccessToken(userId, email, name);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
+        refreshTokenService.storeRefreshToken(userId, refreshToken);
+        return new AuthTokens(accessToken, refreshToken);
+    }
+
+    public AuthTokens refreshTokens(String oldRefreshToken) {
+        refreshTokenService.verifyRefreshToken(oldRefreshToken);
+        Long userId = jwtTokenProvider.getUserIdFromToken(oldRefreshToken);
+        UserResponse user = getCurrentUser(userId);
+
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);
+        refreshTokenService.rotateRefreshToken(oldRefreshToken, newRefreshToken);
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.id(), user.email(), user.name());
+        return new AuthTokens(newAccessToken, newRefreshToken);
+    }
+
+    public void revokeRefreshToken(String refreshToken) {
+        refreshTokenService.revokeRefreshToken(refreshToken);
+    }
+
+    public UserResponse findById(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
         return UserResponse.from(user);
     }
 
