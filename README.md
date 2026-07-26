@@ -19,7 +19,8 @@
 
 - **Email / Password authentication** — secure sign-up and login with validation
 - **OAuth2 Social Login** — one-click sign-in with **Google** and **GitHub**
-- **JWT-based sessions** — stateless, short-lived access tokens
+- **JWT-based sessions** — stateless, short-lived access tokens with type discrimination (access vs refresh)
+- **Refresh token revocation** — server-side token storage with SHA-256 hashing, rotation on refresh, and revocation on logout
 - **Protected routes** — React Router guards for authenticated pages
 - **Dark / Light theme** — system-aware theme toggle powered by `next-themes`
 - **Dockerized database** — PostgreSQL spun up automatically via Docker Compose
@@ -166,6 +167,36 @@ The app will be available at `http://localhost:5173`.
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
 2. **New OAuth App**
 3. Set **Authorization callback URL** to `http://localhost:8080/login/oauth2/code/github`
+
+### Production Profile
+
+For production deployment, activate the `prod` Spring profile:
+
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+```
+
+The production profile requires these environment variables:
+
+| Variable | Description |
+| --- | --- |
+| `JWT_SECRET` | Secret key for JWT signing (min 32 chars) |
+| `CORS_ALLOWED_ORIGIN` | Allowed frontend origin (e.g., `https://yourdomain.com`) |
+| `OAUTH2_REDIRECT_URI` | OAuth2 redirect URI (e.g., `https://yourdomain.com/oauth2/redirect`) |
+
+Secure defaults enabled: `SameSite=Strict` cookies, HSTS (1 year), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, no stacktraces in error responses.
+
+---
+
+## 🔒 Security
+
+- **Token type discrimination** — JWT tokens include a `typ` claim (`access` or `refresh`) to prevent cross-use
+- **Refresh token revocation** — Server-side storage with SHA-256 hashing; tokens are revoked on logout and rotated on refresh
+- **Secure cookies** — `HttpOnly`, `SameSite=Strict`, `Secure` (in production)
+- **Security headers** — `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security` (1 year)
+- **CORS hardening** — Explicit allowed headers (`Content-Type`, `Authorization`, `X-Requested-With`)
+- **Safe OAuth2 failure handling** — Generic error messages, no internal details exposed
+- **Production secrets** — All secrets injected via environment variables, no hardcoded fallbacks
 
 ---
 
