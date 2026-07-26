@@ -8,6 +8,7 @@ app:
     redirect-uri: ${OAUTH2_REDIRECT_URI}
   secure-cookies: true
 
-server:
-  error:
-    include-stacktrace: never
+spring:
+  web:
+    error:
+      include-stacktrace: never
