@@ -2,6 +2,7 @@ package com.sentinel.oauth2;
 
 import com.sentinel.auth.jwt.CookieUtils;
 import com.sentinel.auth.jwt.JwtTokenProvider;
+import com.sentinel.auth.service.RefreshTokenService;
 import com.sentinel.config.AppProperties;
 import com.sentinel.user.entity.User;
 import com.sentinel.user.repository.UserRepository;
@@ -25,6 +26,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final CookieUtils cookieUtils;
     private final AppProperties appProperties;
     private final UserRepository userRepository;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public void onAuthenticationSuccess(
@@ -37,6 +39,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getName());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+        refreshTokenService.storeRefreshToken(user.getId(), refreshToken);
 
         response.addHeader(
                 "Set-Cookie", cookieUtils.createAccessTokenCookie(accessToken).toString());

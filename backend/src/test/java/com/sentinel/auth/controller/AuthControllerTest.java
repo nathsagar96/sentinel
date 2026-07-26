@@ -14,6 +14,7 @@ import com.sentinel.auth.dto.UserResponse;
 import com.sentinel.auth.jwt.CookieUtils;
 import com.sentinel.auth.jwt.JwtTokenProvider;
 import com.sentinel.auth.service.AuthService;
+import com.sentinel.auth.service.RefreshTokenService;
 import com.sentinel.user.entity.AuthProvider;
 import jakarta.servlet.http.Cookie;
 import java.time.Duration;
@@ -41,6 +42,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private CookieUtils cookieUtils;
+
+    @MockitoBean
+    private RefreshTokenService refreshTokenService;
 
     @Test
     void shouldSignupSuccessfully() throws Exception {
@@ -103,14 +107,20 @@ class AuthControllerTest {
         when(authService.getCurrentUser(1L)).thenReturn(response);
         when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", "Test User"))
                 .thenReturn("new-access-token");
+        when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("new-refresh-token");
         when(cookieUtils.createAccessTokenCookie("new-access-token"))
                 .thenReturn(ResponseCookie.from("access_token", "new-access-token")
                         .maxAge(Duration.ofMinutes(15))
                         .build());
+        when(cookieUtils.createRefreshTokenCookie("new-refresh-token"))
+                .thenReturn(ResponseCookie.from("refresh_token", "new-refresh-token")
+                        .maxAge(Duration.ofDays(7))
+                        .build());
 
         mockMvc.perform(post("/api/auth/refresh").cookie(new Cookie("refresh_token", "valid-refresh-token")))
                 .andExpect(status().isOk())
-                .andExpect(cookie().exists("access_token"));
+                .andExpect(cookie().exists("access_token"))
+                .andExpect(cookie().exists("refresh_token"));
     }
 
     @Test
@@ -120,7 +130,7 @@ class AuthControllerTest {
         when(cookieUtils.clearRefreshTokenCookie())
                 .thenReturn(ResponseCookie.from("refresh_token", "").maxAge(0).build());
 
-        mockMvc.perform(post("/api/auth/logout"))
+        mockMvc.perform(post("/api/auth/logout").cookie(new Cookie("refresh_token", "some-token")))
                 .andExpect(status().isOk())
                 .andExpect(cookie().maxAge("access_token", 0))
                 .andExpect(cookie().maxAge("refresh_token", 0));
