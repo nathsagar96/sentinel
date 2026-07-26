@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
 
   const loadUser = useCallback(async () => {
     try {
-      const response = await api.get('/api/auth/me');
+      const response = await api.get('/api/v1/auth/me');
       setUser(response.data);
     } catch {
       setUser(null);
@@ -23,18 +23,18 @@ export function AuthProvider({ children }) {
   }, [loadUser]);
 
   const login = async (email, password) => {
-    const response = await api.post('/api/auth/login', { email, password });
+    const response = await api.post('/api/v1/auth/login', { email, password });
     setUser(response.data);
     return response.data;
   };
 
   const signup = async (name, email, password) => {
-    const response = await api.post('/api/auth/signup', { name, email, password });
+    const response = await api.post('/api/v1/auth/signup', { name, email, password });
     return response.data;
   };
 
   const logout = async () => {
-    await api.post('/api/auth/logout');
+    await api.post('/api/v1/auth/logout');
     setUser(null);
   };
 

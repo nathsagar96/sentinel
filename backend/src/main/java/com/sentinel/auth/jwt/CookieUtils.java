@@ -42,7 +42,7 @@ public class CookieUtils {
                 .httpOnly(true)
                 .secure(appProperties.secureCookies())
                 .sameSite("Strict")
-                .path("/api/auth/refresh")
+                .path("/api/v1/auth/refresh")
                 .maxAge(appProperties.jwt().refreshTokenExpiry())
                 .build();
     }
@@ -62,7 +62,7 @@ public class CookieUtils {
                 .httpOnly(true)
                 .secure(appProperties.secureCookies())
                 .sameSite("Strict")
-                .path("/api/auth/refresh")
+                .path("/api/v1/auth/refresh")
                 .maxAge(0)
                 .build();
     }

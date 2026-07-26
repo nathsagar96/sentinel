@@ -52,7 +52,7 @@ class AuthControllerTest {
         var response = new UserResponse(1L, "test@example.com", "Test User", null, AuthProvider.LOCAL);
         when(authService.signup(any(SignupRequest.class))).thenReturn(response);
 
-        mockMvc.perform(post("/api/auth/signup")
+        mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"Test User","email":"test@example.com","password":"Password1!"}
@@ -65,7 +65,7 @@ class AuthControllerTest {
 
     @Test
     void shouldReturn400_onInvalidSignupRequest() throws Exception {
-        mockMvc.perform(post("/api/auth/signup")
+        mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"","email":"invalid","password":"short"}
@@ -90,7 +90,7 @@ class AuthControllerTest {
                         .maxAge(Duration.ofDays(7))
                         .build());
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"email":"test@example.com","password":"password123"}
@@ -117,7 +117,7 @@ class AuthControllerTest {
                         .maxAge(Duration.ofDays(7))
                         .build());
 
-        mockMvc.perform(post("/api/auth/refresh").cookie(new Cookie("refresh_token", "valid-refresh-token")))
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(new Cookie("refresh_token", "valid-refresh-token")))
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("access_token"))
                 .andExpect(cookie().exists("refresh_token"));
@@ -130,8 +130,8 @@ class AuthControllerTest {
         when(cookieUtils.clearRefreshTokenCookie())
                 .thenReturn(ResponseCookie.from("refresh_token", "").maxAge(0).build());
 
-        mockMvc.perform(post("/api/auth/logout").cookie(new Cookie("refresh_token", "some-token")))
-                .andExpect(status().isOk())
+        mockMvc.perform(post("/api/v1/auth/logout").cookie(new Cookie("refresh_token", "some-token")))
+                .andExpect(status().isNoContent())
                 .andExpect(cookie().maxAge("access_token", 0))
                 .andExpect(cookie().maxAge("refresh_token", 0));
     }
@@ -143,7 +143,7 @@ class AuthControllerTest {
         when(jwtTokenProvider.getUserIdFromToken("valid-access-token")).thenReturn(1L);
         when(authService.getCurrentUser(1L)).thenReturn(response);
 
-        mockMvc.perform(get("/api/auth/me").cookie(new Cookie("access_token", "valid-access-token")))
+        mockMvc.perform(get("/api/v1/auth/me").cookie(new Cookie("access_token", "valid-access-token")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("test@example.com"));
     }
