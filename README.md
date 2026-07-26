@@ -1,0 +1,227 @@
+<div align="center">
+
+# 🛡️ Sentinel
+
+**A full-stack authentication system with OAuth2 social login, JWT sessions, and a modern React UI.**
+
+[![Java](https://img.shields.io/badge/Java-25-orange?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+</div>
+
+---
+
+## ✨ Features
+
+- **Email / Password authentication** — secure sign-up and login with validation
+- **OAuth2 Social Login** — one-click sign-in with **Google** and **GitHub**
+- **JWT-based sessions** — stateless, short-lived access tokens
+- **Protected routes** — React Router guards for authenticated pages
+- **Dark / Light theme** — system-aware theme toggle powered by `next-themes`
+- **Dockerized database** — PostgreSQL spun up automatically via Docker Compose
+- **Input validation** — Bean Validation on the backend, real-time feedback on the frontend
+
+---
+
+## 🏗️ Tech Stack
+
+### Backend
+
+| Technology | Version | Purpose |
+|---|---|---|
+| Java | 25 | Language |
+| Spring Boot | 4.1.0 | Application framework |
+| Spring Security + OAuth2 Client | — | Authentication & authorization |
+| Spring Data JPA | — | ORM / database access |
+| JJWT | 0.13.0 | JWT creation & validation |
+| PostgreSQL | 18 | Relational database |
+| Lombok | — | Boilerplate reduction |
+| Spotless (Palantir) | 3.8.0 | Code formatting |
+| Testcontainers | — | Integration testing |
+
+### Frontend
+
+| Technology | Version | Purpose |
+|---|---|---|
+| React | 19 | UI framework |
+| Vite | 8 | Build tool & dev server |
+| React Router | 7 | Client-side routing |
+| Tailwind CSS v4 | — | Utility-first styling |
+| shadcn/ui | — | Component library |
+| Axios | — | HTTP client |
+| Sonner | — | Toast notifications |
+| next-themes | — | Theme management |
+
+---
+
+## 📁 Project Structure
+
+```
+sentinel/
+├── backend/                  # Spring Boot application
+│   ├── src/
+│   │   └── main/java/com/sentinel/
+│   │       ├── auth/         # Auth controllers, services, DTOs, JWT
+│   │       ├── config/       # Security & app configuration
+│   │       ├── exception/    # Global exception handling
+│   │       ├── oauth2/       # OAuth2 success/failure handlers
+│   │       └── user/         # User entity & repository
+│   ├── compose.yaml          # Docker Compose (PostgreSQL)
+│   ├── .env.example          # Environment variable template
+│   └── pom.xml
+└── frontend/                 # React + Vite application
+    └── src/
+        ├── api/              # Axios API client
+        ├── components/       # Reusable UI components
+        ├── context/          # React context (auth state)
+        ├── hooks/            # Custom React hooks
+        ├── pages/            # Route-level page components
+        │   ├── LoginPage.jsx
+        │   ├── SignupPage.jsx
+        │   ├── DashboardPage.jsx
+        │   └── OAuth2RedirectPage.jsx
+        └── lib/              # Utility helpers
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Java 25+** — [Download](https://openjdk.org/)
+- **Maven** — bundled via `./mvnw`
+- **Node.js 20+** — [Download](https://nodejs.org/)
+- **Docker & Docker Compose** — [Download](https://docs.docker.com/get-docker/)
+- A **Google** and/or **GitHub** OAuth2 application (see [Configuration](#️-configuration))
+
+---
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/nathsagar96/sentinel.git
+cd sentinel
+```
+
+### 2. Configure environment variables
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Open `backend/.env` and fill in your credentials:
+
+```env
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+JWT_SECRET=your-256-bit-secret-key-here-min-32-chars
+```
+
+### 3. Start the backend
+
+The backend automatically starts PostgreSQL via Spring Boot's Docker Compose integration.
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+The API will be available at `http://localhost:8080`.
+
+### 4. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`.
+
+---
+
+## ⚙️ Configuration
+
+### OAuth2 Setup
+
+#### Google
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project → **APIs & Services** → **Credentials**
+3. Create an **OAuth 2.0 Client ID** (Web application)
+4. Add `http://localhost:8080/login/oauth2/code/google` as an authorized redirect URI
+
+#### GitHub
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. **New OAuth App**
+3. Set **Authorization callback URL** to `http://localhost:8080/login/oauth2/code/github`
+
+---
+
+## 🧪 Running Tests
+
+```bash
+cd backend
+./mvnw test
+```
+
+Integration tests use **Testcontainers** and spin up a real PostgreSQL instance automatically — no manual setup required.
+
+---
+
+## 🛠️ Development Commands
+
+### Backend
+
+| Command | Description |
+|---|---|
+| `./mvnw spring-boot:run` | Start the backend server |
+| `./mvnw test` | Run all tests |
+| `./mvnw spotless:apply` | Format code (Palantir style) |
+
+### Frontend
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Build for production |
+| `npm run lint` | Lint with oxlint |
+| `npm run preview` | Preview the production build |
+
+---
+
+## 🔒 API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/signup` | Public | Register a new user |
+| `POST` | `/api/auth/login` | Public | Login with email & password |
+| `GET` | `/api/auth/me` | JWT | Get current user profile |
+| `GET` | `/oauth2/authorization/google` | Public | Initiate Google OAuth2 flow |
+| `GET` | `/oauth2/authorization/github` | Public | Initiate GitHub OAuth2 flow |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Format your code: `./mvnw spotless:apply` (backend) / `npm run lint` (frontend)
+4. Commit your changes: `git commit -m 'feat: add my feature'`
+5. Push and open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
