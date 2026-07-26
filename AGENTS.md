@@ -22,9 +22,10 @@ Full-stack authentication system with Java Spring Boot backend and React/Vite fr
 **Frontend**: React 19 + Vite, Tailwind + Shadcn UI, React Router, Axios client.
 
 ## Development
-- Backend: Spring profiles, dotenv vars, PostgreSQL required
+- Backend: Spring profiles, dotenv vars, PostgreSQL required with Flyway
 - Frontend: Install via `cd frontend && npm install`
 - Artifacts: `frontend/dist/`
+- Database: Use Flyway for schema migrations (`./mvnw flyway:migrate`)
 
 ## Quick Entry
 1. `mvn spring-boot:run` (backend)

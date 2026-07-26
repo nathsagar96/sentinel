@@ -70,6 +70,7 @@ sentinel/
 │   │       ├── exception/    # Global exception handling
 │   │       ├── oauth2/       # OAuth2 success/failure handlers
 │   │       └── user/         # User entity & repository
+│   ├── src/main/resources/db/migration/  # Flyway migration scripts
 │   ├── compose.yaml          # Docker Compose (PostgreSQL)
 │   ├── .env.example          # Environment variable template
 │   └── pom.xml
@@ -175,6 +176,42 @@ cd backend
 
 Integration tests use **Testcontainers** and spin up a real PostgreSQL instance automatically — no manual setup required.
 
+## 📄 Database Migrations
+
+The application uses **Flyway** for database schema management. Migrations are version-controlled and automatically applied on startup.
+
+### Running Migrations
+
+```bash
+cd backend
+./mvnw flyway:clean  # Clean the database (destructive)
+./mvnw flyway:migrate  # Apply all pending migrations
+./mvnw flyway:info    # Check migration status and version
+./mvnw flyway:validate  # Validate that schema matches code
+```
+
+### Migration Files
+
+Migrations are located in `backend/src/main/resources/db/migration/` and follow Flyway naming convention: `V{version}__{description}.sql`.
+
+Example migration file:
+
+```sql
+CREATE TABLE users (
+    id          BIGSERIAL    PRIMARY KEY,
+    email       VARCHAR(255) NOT NULL UNIQUE,
+    password    VARCHAR(255),
+    name        VARCHAR(255) NOT NULL,
+    avatar_url  VARCHAR(255),
+    provider    VARCHAR(255) NOT NULL,
+    provider_id VARCHAR(255),
+    created_at  TIMESTAMP(6),
+    updated_at  TIMESTAMP(6)
+);
+
+CREATE INDEX idx_users_provider_provider_id ON users (provider, provider_id);
+```
+
 ---
 
 ## 🛠️ Development Commands
@@ -186,6 +223,9 @@ Integration tests use **Testcontainers** and spin up a real PostgreSQL instance 
 | `./mvnw spring-boot:run` | Start the backend server |
 | `./mvnw test` | Run all tests |
 | `./mvnw spotless:apply` | Format code (Palantir style) |
+| `./mvnw flyway:info` | Check migration status and version |
+| `./mvnw flyway:migrate` | Apply all pending migrations |
+| `./mvnw flyway:validate` | Validate that schema matches code |
 
 ### Frontend
 
