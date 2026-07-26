@@ -1,6 +1,7 @@
 package com.sentinel.config;
 
 import com.sentinel.auth.jwt.JwtAuthenticationFilter;
+import com.sentinel.auth.jwt.JwtTokenProvider;
 import com.sentinel.oauth2.CustomOAuth2UserService;
 import com.sentinel.oauth2.OAuth2AuthenticationFailureHandler;
 import com.sentinel.oauth2.OAuth2AuthenticationSuccessHandler;
@@ -23,7 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtTokenProvider jwtTokenProvider;
     private final CorsConfigurationSource corsConfigurationSource;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
@@ -48,7 +49,7 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frame -> frame.deny())
                         .contentTypeOptions(Customizer.withDefaults())
                         .httpStrictTransportSecurity(
