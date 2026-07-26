@@ -41,7 +41,7 @@ class JwtAuthenticationFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setCookies(new jakarta.servlet.http.Cookie("access_token", "valid-token"));
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(jwtTokenProvider.validateToken("valid-token")).thenReturn(true);
+        when(jwtTokenProvider.validateToken("valid-token", "access")).thenReturn(true);
         when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(123L);
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -57,7 +57,7 @@ class JwtAuthenticationFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setCookies(new jakarta.servlet.http.Cookie("access_token", "invalid-token"));
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(jwtTokenProvider.validateToken("invalid-token")).thenReturn(false);
+        when(jwtTokenProvider.validateToken("invalid-token", "access")).thenReturn(false);
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
@@ -73,7 +73,7 @@ class JwtAuthenticationFilterTest {
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(jwtTokenProvider, never()).validateToken(anyString());
+        verify(jwtTokenProvider, never()).validateToken(anyString(), anyString());
         verify(filterChain).doFilter(request, response);
     }
 }

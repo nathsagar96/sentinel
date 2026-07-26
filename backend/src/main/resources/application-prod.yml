@@ -1,0 +1,13 @@
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  cors:
+    allowed-origins:
+      - ${CORS_ALLOWED_ORIGIN}
+  oauth2:
+    redirect-uri: ${OAUTH2_REDIRECT_URI}
+  secure-cookies: true
+
+server:
+  error:
+    include-stacktrace: never
