@@ -17,7 +17,7 @@ import com.sentinel.config.TestSecurityConfig;
 import com.sentinel.user.entity.AuthProvider;
 import jakarta.servlet.http.Cookie;
 import java.time.Duration;
-import org.junit.jupiter.api.Disabled;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -25,6 +25,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -127,13 +128,13 @@ class AuthControllerTest {
     }
 
     @Test
-    @Disabled(
-            "TODO: fix with proper SecurityFilterChain test config — @WebMvcTest addFilters=false prevents Authentication resolution")
     void shouldReturnCurrentUser() throws Exception {
         var response = new UserResponse(1L, "test@example.com", "Test User", null, AuthProvider.LOCAL);
         when(authService.getCurrentUser(1L)).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/auth/me"))
+        var auth = new UsernamePasswordAuthenticationToken(1L, null, List.of());
+
+        mockMvc.perform(get("/api/v1/auth/me").principal(auth))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("test@example.com"));
     }

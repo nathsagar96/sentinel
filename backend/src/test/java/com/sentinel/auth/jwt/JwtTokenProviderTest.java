@@ -48,4 +48,18 @@ class JwtTokenProviderTest {
         assertThat(jwtTokenProvider.validateToken("invalid.token.string", "refresh"))
                 .isFalse();
     }
+
+    @Test
+    void testExpiredTokenIsRejected() {
+        AppProperties expiredProps = new AppProperties(
+                new AppProperties.JwtProperties(
+                        "defaultDevSecretKeyThatIsAtLeast32CharactersLong", Duration.ofMillis(-1), Duration.ofDays(7)),
+                new AppProperties.CorsProperties(List.of("http://localhost:5173")),
+                new AppProperties.OAuth2Properties("http://localhost:5173/oauth2/redirect"),
+                false);
+        JwtTokenProvider expiredProvider = new JwtTokenProvider(expiredProps);
+
+        String token = expiredProvider.generateAccessToken(999L, "expired@example.com", "Expired User");
+        assertThat(expiredProvider.validateToken(token, "access")).isFalse();
+    }
 }
