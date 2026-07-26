@@ -15,7 +15,7 @@ public class CookieUtils {
         return ResponseCookie.from("access_token", token)
                 .httpOnly(true)
                 .secure(appProperties.secureCookies())
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .path("/")
                 .maxAge(appProperties.jwt().accessTokenExpiry())
                 .build();
@@ -25,7 +25,7 @@ public class CookieUtils {
         return ResponseCookie.from("refresh_token", token)
                 .httpOnly(true)
                 .secure(appProperties.secureCookies())
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .path("/api/auth/refresh")
                 .maxAge(appProperties.jwt().refreshTokenExpiry())
                 .build();
@@ -35,7 +35,7 @@ public class CookieUtils {
         return ResponseCookie.from("access_token", "")
                 .httpOnly(true)
                 .secure(appProperties.secureCookies())
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -45,7 +45,7 @@ public class CookieUtils {
         return ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(appProperties.secureCookies())
-                .sameSite("Lax")
+                .sameSite("Strict")
                 .path("/api/auth/refresh")
                 .maxAge(0)
                 .build();
