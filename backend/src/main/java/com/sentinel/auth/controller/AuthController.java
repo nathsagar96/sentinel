@@ -56,7 +56,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<Void> refresh(HttpServletRequest request) {
         String refreshToken = extractCookie(request, "refresh_token");
-        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken, "refresh")) {
             throw new BadRequestException("Invalid or missing refresh token");
         }
 
@@ -87,7 +87,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(HttpServletRequest request) {
         String accessToken = extractCookie(request, "access_token");
-        if (accessToken == null || !jwtTokenProvider.validateToken(accessToken)) {
+        if (accessToken == null || !jwtTokenProvider.validateToken(accessToken, "access")) {
             throw new BadRequestException("Invalid or missing access token");
         }
 

@@ -15,6 +15,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class JwtTokenProvider {
 
+    private static final String CLAIM_TOKEN_TYPE = "typ";
+    private static final String TOKEN_TYPE_ACCESS = "access";
+    private static final String TOKEN_TYPE_REFRESH = "refresh";
+
     private final SecretKey key;
     private final AppProperties.JwtProperties jwtProperties;
 
@@ -31,6 +35,7 @@ public class JwtTokenProvider {
                 .subject(userId.toString())
                 .claim("email", email)
                 .claim("name", name)
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -44,6 +49,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(userId.toString())
+                .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -56,10 +62,14 @@ public class JwtTokenProvider {
         return Long.parseLong(claims.getSubject());
     }
 
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token, String expectedType) {
         try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
-            return true;
+            Claims claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return expectedType.equals(claims.get(CLAIM_TOKEN_TYPE, String.class));
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
             return false;

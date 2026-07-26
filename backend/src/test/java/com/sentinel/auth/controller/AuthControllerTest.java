@@ -98,7 +98,7 @@ class AuthControllerTest {
     @Test
     void shouldRefreshAccessToken() throws Exception {
         var response = new UserResponse(1L, "test@example.com", "Test User", null, AuthProvider.LOCAL);
-        when(jwtTokenProvider.validateToken("valid-refresh-token")).thenReturn(true);
+        when(jwtTokenProvider.validateToken("valid-refresh-token", "refresh")).thenReturn(true);
         when(jwtTokenProvider.getUserIdFromToken("valid-refresh-token")).thenReturn(1L);
         when(authService.getCurrentUser(1L)).thenReturn(response);
         when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", "Test User"))
@@ -129,7 +129,7 @@ class AuthControllerTest {
     @Test
     void shouldReturnCurrentUser() throws Exception {
         var response = new UserResponse(1L, "test@example.com", "Test User", null, AuthProvider.LOCAL);
-        when(jwtTokenProvider.validateToken("valid-access-token")).thenReturn(true);
+        when(jwtTokenProvider.validateToken("valid-access-token", "access")).thenReturn(true);
         when(jwtTokenProvider.getUserIdFromToken("valid-access-token")).thenReturn(1L);
         when(authService.getCurrentUser(1L)).thenReturn(response);
 
