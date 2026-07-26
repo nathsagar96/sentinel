@@ -1,5 +1,6 @@
 package com.sentinel.oauth2;
 
+import com.sentinel.auth.jwt.CookieUtils;
 import com.sentinel.user.entity.AuthProvider;
 import com.sentinel.user.entity.User;
 import com.sentinel.user.repository.UserRepository;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 @Service
@@ -50,7 +52,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .orElseGet(() -> createNewUser(userInfo, resolvedEmail));
 
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
-        attributes.put("internal_user_id", user.getId());
+        attributes.put(CookieUtils.INTERNAL_USER_ID_ATTR, user.getId());
 
         return new DefaultOAuth2User(
                 List.of(() -> "ROLE_USER"),
@@ -62,7 +64,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                         .getUserNameAttributeName());
     }
 
-    private User updateExistingUser(User user, OAuth2UserInfo userInfo) {
+    @Transactional
+    public User updateExistingUser(User user, OAuth2UserInfo userInfo) {
         if (user.getName() == null) {
             user.setName(userInfo.name());
         }

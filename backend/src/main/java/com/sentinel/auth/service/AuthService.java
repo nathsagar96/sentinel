@@ -9,6 +9,7 @@ import com.sentinel.exception.ResourceNotFoundException;
 import com.sentinel.user.entity.AuthProvider;
 import com.sentinel.user.entity.User;
 import com.sentinel.user.repository.UserRepository;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,16 +26,16 @@ public class AuthService {
 
     @Transactional
     public UserResponse signup(SignupRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            log.warn(
-                    "Signup attempt with duplicate email for domain: ***@{}",
-                    request.email().replaceAll(".*@", ""));
+        String normalizedEmail = request.email().trim().toLowerCase(Locale.ROOT);
+
+        if (userRepository.existsByEmail(normalizedEmail)) {
+            log.warn("Signup attempt with duplicate email for domain: ***@{}", normalizedEmail.replaceAll(".*@", ""));
             throw new DuplicateResourceException("Email already registered");
         }
 
         User user = User.builder()
                 .name(request.name())
-                .email(request.email())
+                .email(normalizedEmail)
                 .password(passwordEncoder.encode(request.password()))
                 .provider(AuthProvider.LOCAL)
                 .build();
@@ -45,8 +46,10 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public UserResponse login(LoginRequest request) {
+        String normalizedEmail = request.email().trim().toLowerCase(Locale.ROOT);
+
         User user = userRepository
-                .findByEmail(request.email())
+                .findByEmail(normalizedEmail)
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
         if (user.getPassword() == null) {
@@ -64,7 +67,7 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             log.warn(
                     "AUTH_FAILURE email_domain=***@{} reason=invalid_credentials",
-                    request.email().replaceAll(".*@", ""));
+                    normalizedEmail.replaceAll(".*@", ""));
             throw new BadRequestException("Invalid email or password");
         }
 

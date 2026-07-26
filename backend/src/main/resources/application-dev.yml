@@ -2,9 +2,3 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-
-
-logging:
-  structured:
-    format:
-      console:

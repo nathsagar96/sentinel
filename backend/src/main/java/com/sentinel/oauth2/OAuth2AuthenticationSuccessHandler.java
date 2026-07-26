@@ -4,6 +4,7 @@ import com.sentinel.auth.jwt.CookieUtils;
 import com.sentinel.auth.jwt.JwtTokenProvider;
 import com.sentinel.auth.service.RefreshTokenService;
 import com.sentinel.config.AppProperties;
+import com.sentinel.exception.ResourceNotFoundException;
 import com.sentinel.user.entity.User;
 import com.sentinel.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +36,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Long userId = (Long) oAuth2User.getAttributes().get("internal_user_id");
 
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getName());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
