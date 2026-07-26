@@ -24,7 +24,7 @@ public class GitHubEmailFetcher {
                         headers.set("Accept", "application/vnd.github+json");
                     })
                     .retrieve()
-                    .body(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
+                    .body(new ParameterizedTypeReference<>() {});
 
             if (emails != null) {
                 for (Map<String, Object> entry : emails) {

@@ -7,7 +7,7 @@ public class PasswordComplexityValidator implements ConstraintValidator<ValidPas
 
     private static final String UPPERCASE_PATTERN = ".*[A-Z].*";
     private static final String DIGIT_PATTERN = ".*\\d.*";
-    private static final String SPECIAL_CHAR_PATTERN = ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*";
+    private static final String SPECIAL_CHAR_PATTERN = ".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*";
 
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
