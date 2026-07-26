@@ -36,3 +36,4 @@ Full-stack authentication system with Java Spring Boot backend and React/Vite fr
 - Backend: `backend/src/main/java/com/sentinel/`
 - Frontend: `frontend/src/`
 - Security: `com.sentinel.security` package
+- Observability: `CorrelationIdFilter` in `config/` package, ECS structured logging via `logging.structured.format: ecs`
