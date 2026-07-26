@@ -24,6 +24,7 @@
 - **Dark / Light theme** — system-aware theme toggle powered by `next-themes`
 - **Dockerized database** — PostgreSQL spun up automatically via Docker Compose
 - **Input validation** — Bean Validation on the backend, real-time feedback on the frontend
+- **Observability** — health checks, metrics, structured ECS JSON logging with correlation IDs
 
 ---
 
@@ -32,11 +33,12 @@
 ### Backend
 
 | Technology | Version | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | Java | 25 | Language |
 | Spring Boot | 4.1.0 | Application framework |
 | Spring Security + OAuth2 Client | — | Authentication & authorization |
 | Spring Data JPA | — | ORM / database access |
+| Spring Boot Actuator | — | Health checks, metrics, monitoring |
 | JJWT | 0.13.0 | JWT creation & validation |
 | PostgreSQL | 18 | Relational database |
 | Lombok | — | Boilerplate reduction |
@@ -46,7 +48,7 @@
 ### Frontend
 
 | Technology | Version | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | React | 19 | UI framework |
 | Vite | 8 | Build tool & dev server |
 | React Router | 7 | Client-side routing |
@@ -219,18 +221,30 @@ CREATE INDEX idx_users_provider_provider_id ON users (provider, provider_id);
 ### Backend
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `./mvnw spring-boot:run` | Start the backend server |
 | `./mvnw test` | Run all tests |
 | `./mvnw spotless:apply` | Format code (Palantir style) |
 | `./mvnw flyway:info` | Check migration status and version |
 | `./mvnw flyway:migrate` | Apply all pending migrations |
 | `./mvnw flyway:validate` | Validate that schema matches code |
+| `curl http://localhost:8080/actuator/health` | Check application health |
+
+### Observability
+
+The backend produces structured JSON logs in **Elastic Common Schema (ECS)** format, compatible with ELK, Loki, CloudWatch, and other log aggregators. Each request is tagged with a `correlationId` (via `X-Correlation-Id` header or auto-generated UUID) for request tracing across log lines.
+
+**Key logging conventions:**
+
+- `AUTH_SUCCESS` — successful login (includes `user_id`, `provider`)
+- `AUTH_FAILURE` — failed login attempt (includes masked email domain, reason)
+- No PII (email addresses) logged in plaintext — domains are masked as `***@domain`
+- MDC fields: `correlationId`, `userId`
 
 ### Frontend
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `npm run dev` | Start the dev server |
 | `npm run build` | Build for production |
 | `npm run lint` | Lint with oxlint |
@@ -241,12 +255,15 @@ CREATE INDEX idx_users_provider_provider_id ON users (provider, provider_id);
 ## 🔒 API Endpoints
 
 | Method | Endpoint | Auth | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `POST` | `/api/auth/signup` | Public | Register a new user |
 | `POST` | `/api/auth/login` | Public | Login with email & password |
 | `GET` | `/api/auth/me` | JWT | Get current user profile |
 | `GET` | `/oauth2/authorization/google` | Public | Initiate Google OAuth2 flow |
 | `GET` | `/oauth2/authorization/github` | Public | Initiate GitHub OAuth2 flow |
+| `GET` | `/actuator/health` | Public | Application health status |
+| `GET` | `/actuator/info` | Public | Application metadata |
+| `GET` | `/actuator/metrics` | Public | Application metrics |
 
 ---
 

@@ -10,12 +10,14 @@ import com.sentinel.user.entity.AuthProvider;
 import com.sentinel.user.entity.User;
 import com.sentinel.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -24,7 +26,10 @@ public class AuthService {
     @Transactional
     public UserResponse signup(SignupRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new DuplicateResourceException("Email already registered: " + request.email());
+            log.warn(
+                    "Signup attempt with duplicate email for domain: ***@{}",
+                    request.email().replaceAll(".*@", ""));
+            throw new DuplicateResourceException("Email already registered");
         }
 
         User user = User.builder()
@@ -57,9 +62,13 @@ public class AuthService {
         }
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            log.warn(
+                    "AUTH_FAILURE email_domain=***@{} reason=invalid_credentials",
+                    request.email().replaceAll(".*@", ""));
             throw new BadRequestException("Invalid email or password");
         }
 
+        log.info("AUTH_SUCCESS user_id={} provider=LOCAL", user.getId());
         return UserResponse.from(user);
     }
 

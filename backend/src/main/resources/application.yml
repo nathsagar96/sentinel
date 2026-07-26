@@ -30,6 +30,23 @@ spring:
     problemdetails:
       enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: ${spring.application.name}
+
 app:
   jwt:
     secret: ${JWT_SECRET:defaultDevSecretKeyThatIsAtLeast32CharactersLong}

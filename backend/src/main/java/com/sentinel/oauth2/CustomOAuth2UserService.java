@@ -40,7 +40,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if (email == null) {
             email = userInfo.provider().name().toLowerCase() + "-" + userInfo.providerId()
                     + "@placeholder.sentinel.local";
-            log.warn("Email not available from {} OAuth2; generated placeholder: {}", userInfo.provider(), email);
+            log.warn("Email not available from {} OAuth2; generated placeholder email", userInfo.provider());
         }
 
         String resolvedEmail = email;
