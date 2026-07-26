@@ -9,6 +9,7 @@ import com.sentinel.auth.entity.RefreshToken;
 import com.sentinel.auth.repository.RefreshTokenRepository;
 import com.sentinel.config.AppProperties;
 import com.sentinel.exception.BadRequestException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -44,7 +45,8 @@ class RefreshTokenServiceTest {
 
     private String hash(String raw) {
         try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(raw.getBytes()));
+            return HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
