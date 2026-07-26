@@ -1,14 +1,13 @@
 import { Button } from '../ui/button';
-
-const BACKEND_URL = 'http://localhost:8080';
+import { API_BASE_URL } from '../../api/axios';
 
 export function SocialLoginButtons() {
   const handleGoogleLogin = () => {
-    window.location.href = `${BACKEND_URL}/oauth2/authorization/google`;
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
   };
 
   const handleGithubLogin = () => {
-    window.location.href = `${BACKEND_URL}/oauth2/authorization/github`;
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/github`;
   };
 
   return (

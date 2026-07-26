@@ -6,13 +6,16 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
 
   const loadUser = useCallback(async () => {
+    setAuthError(null);
     try {
       const response = await api.get('/api/v1/auth/me');
       setUser(response.data);
-    } catch {
+    } catch (err) {
       setUser(null);
+      setAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -39,7 +42,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, loadUser }}>
+    <AuthContext.Provider value={{ user, loading, authError, login, signup, logout, loadUser }}>
       {children}
     </AuthContext.Provider>
   );

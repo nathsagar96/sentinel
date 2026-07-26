@@ -1,7 +1,10 @@
 import { useAuth } from '../hooks/useAuth';
 import { Navbar } from '../components/layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Shield, Mail, User, Globe } from 'lucide-react';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import User from 'lucide-react/dist/esm/icons/user';
+import Globe from 'lucide-react/dist/esm/icons/globe';
 
 export function DashboardPage() {
   const { user } = useAuth();

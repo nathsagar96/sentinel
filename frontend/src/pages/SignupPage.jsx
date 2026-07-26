@@ -1,10 +1,21 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { SignupForm } from '../components/auth/SignupForm';
 import { SocialLoginButtons } from '../components/auth/SocialLoginButtons';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Separator } from '../components/ui/separator';
+import { toast } from 'sonner';
 
 export function SignupPage() {
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      toast.error(decodeURIComponent(error));
+    }
+  }, [searchParams]);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
       <Card className="w-full max-w-md">

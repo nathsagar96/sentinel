@@ -1,16 +1,20 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from 'sonner';
 
 export function OAuth2RedirectPage() {
-  const { loadUser } = useAuth();
+  const { loading, authError } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadUser().then(() => {
+    if (authError) {
+      toast.error('Authentication failed. Please try signing in again.');
+      navigate('/login', { replace: true });
+    } else if (!loading) {
       navigate('/dashboard', { replace: true });
-    });
-  }, [loadUser, navigate]);
+    }
+  }, [loading, authError, navigate]);
 
   return (
     <div className="flex h-screen items-center justify-center">

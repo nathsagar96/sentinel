@@ -1,7 +1,8 @@
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
-import { LogOut, Shield } from 'lucide-react';
+import LogOut from 'lucide-react/dist/esm/icons/log-out';
+import Shield from 'lucide-react/dist/esm/icons/shield';
 
 export function Navbar() {
   const { user, logout } = useAuth();
