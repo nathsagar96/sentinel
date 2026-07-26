@@ -1,9 +1,10 @@
 package com.sentinel.oauth2;
 
-import com.sentinel.auth.dto.UserResponse;
 import com.sentinel.auth.jwt.CookieUtils;
 import com.sentinel.auth.service.AuthService;
 import com.sentinel.config.AppProperties;
+import com.sentinel.user.entity.User;
+import com.sentinel.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final AuthService authService;
+    private final UserService userService;
     private final CookieUtils cookieUtils;
     private final AppProperties appProperties;
 
@@ -31,8 +33,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Long userId = (Long) oAuth2User.getAttributes().get("internal_user_id");
 
-        UserResponse user = authService.findById(userId);
-        AuthService.AuthTokens tokens = authService.issueTokens(user.id(), user.email(), user.name());
+        User user = userService.findById(userId);
+        AuthService.AuthTokens tokens = authService.issueTokens(user.getId(), user.getEmail(), user.getName());
 
         response.addHeader(
                 "Set-Cookie",
