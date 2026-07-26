@@ -7,7 +7,6 @@ import com.sentinel.auth.jwt.CookieUtils;
 import com.sentinel.auth.jwt.JwtTokenProvider;
 import com.sentinel.auth.service.AuthService;
 import com.sentinel.exception.BadRequestException;
-import com.sentinel.user.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -39,10 +38,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest request) {
-        User user = authService.login(request);
+        UserResponse user = authService.login(request);
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail(), user.getName());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+        String accessToken = jwtTokenProvider.generateAccessToken(user.id(), user.email(), user.name());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.id());
 
         return ResponseEntity.ok()
                 .header(
@@ -51,7 +50,7 @@ public class AuthController {
                 .header(
                         HttpHeaders.SET_COOKIE,
                         cookieUtils.createRefreshTokenCookie(refreshToken).toString())
-                .body(UserResponse.from(user));
+                .body(user);
     }
 
     @PostMapping("/refresh")

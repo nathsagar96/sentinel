@@ -12,6 +12,7 @@ import com.sentinel.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public UserResponse signup(SignupRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new DuplicateResourceException("Email already registered: " + request.email());
@@ -36,7 +38,8 @@ public class AuthService {
         return UserResponse.from(saved);
     }
 
-    public User login(LoginRequest request) {
+    @Transactional(readOnly = true)
+    public UserResponse login(LoginRequest request) {
         User user = userRepository
                 .findByEmail(request.email())
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
@@ -48,19 +51,19 @@ public class AuthService {
                         case GITHUB -> "GitHub";
                         default -> user.getProvider().name();
                     };
-            BadRequestException ex = new BadRequestException(
-                    "This account uses " + providerDisplay + ". Please sign in with " + providerDisplay + ".");
-            ex.setProvider(providerDisplay);
-            throw ex;
+            throw new BadRequestException(
+                    "This account uses " + providerDisplay + ". Please sign in with " + providerDisplay + ".",
+                    providerDisplay);
         }
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new BadRequestException("Invalid email or password");
         }
 
-        return user;
+        return UserResponse.from(user);
     }
 
+    @Transactional(readOnly = true)
     public UserResponse getCurrentUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
         return UserResponse.from(user);

@@ -20,7 +20,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -35,15 +34,19 @@ public class User {
 
     private String password;
 
+    @Setter
     @Column(nullable = false)
     private String name;
 
+    @Setter
     private String avatarUrl;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AuthProvider provider;
 
+    @Setter
     private String providerId;
 
     @CreationTimestamp

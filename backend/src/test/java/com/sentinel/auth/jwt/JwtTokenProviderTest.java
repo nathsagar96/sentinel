@@ -18,7 +18,8 @@ class JwtTokenProviderTest {
                 new AppProperties.JwtProperties(
                         "defaultDevSecretKeyThatIsAtLeast32CharactersLong", Duration.ofMinutes(15), Duration.ofDays(7)),
                 new AppProperties.CorsProperties(List.of("http://localhost:5173")),
-                new AppProperties.OAuth2Properties("http://localhost:5173/oauth2/redirect"));
+                new AppProperties.OAuth2Properties("http://localhost:5173/oauth2/redirect"),
+                false);
         jwtTokenProvider = new JwtTokenProvider(appProperties);
     }
 

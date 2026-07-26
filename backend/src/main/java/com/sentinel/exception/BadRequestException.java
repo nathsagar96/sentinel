@@ -1,15 +1,18 @@
 package com.sentinel.exception;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-@Setter
 public final class BadRequestException extends ApplicationException {
-    private String provider;
+    private final String provider;
 
     public BadRequestException(String message) {
+        this(message, null);
+    }
+
+    public BadRequestException(String message, String provider) {
         super(message, HttpStatus.BAD_REQUEST);
+        this.provider = provider;
     }
 }

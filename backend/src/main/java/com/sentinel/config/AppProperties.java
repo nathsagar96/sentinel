@@ -11,7 +11,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record AppProperties(
         @Valid JwtProperties jwt,
         @Valid CorsProperties cors,
-        @Valid OAuth2Properties oauth2) {
+        @Valid OAuth2Properties oauth2,
+        boolean secureCookies) {
     public record JwtProperties(
             @NotBlank String secret,
             @NotNull Duration accessTokenExpiry,

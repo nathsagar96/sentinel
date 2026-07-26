@@ -14,7 +14,7 @@ public class CookieUtils {
     public ResponseCookie createAccessTokenCookie(String token) {
         return ResponseCookie.from("access_token", token)
                 .httpOnly(true)
-                .secure(false) // set true in production
+                .secure(appProperties.secureCookies())
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(appProperties.jwt().accessTokenExpiry())
@@ -24,7 +24,7 @@ public class CookieUtils {
     public ResponseCookie createRefreshTokenCookie(String token) {
         return ResponseCookie.from("refresh_token", token)
                 .httpOnly(true)
-                .secure(false) // set true in production
+                .secure(appProperties.secureCookies())
                 .sameSite("Lax")
                 .path("/api/auth/refresh")
                 .maxAge(appProperties.jwt().refreshTokenExpiry())
@@ -34,7 +34,7 @@ public class CookieUtils {
     public ResponseCookie clearAccessTokenCookie() {
         return ResponseCookie.from("access_token", "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(appProperties.secureCookies())
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(0)
@@ -44,7 +44,7 @@ public class CookieUtils {
     public ResponseCookie clearRefreshTokenCookie() {
         return ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(appProperties.secureCookies())
                 .sameSite("Lax")
                 .path("/api/auth/refresh")
                 .maxAge(0)

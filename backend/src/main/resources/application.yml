@@ -6,7 +6,7 @@ spring:
       maximum-pool-size: 20
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
@@ -40,3 +40,4 @@ app:
       - http://localhost:5173
   oauth2:
     redirect-uri: http://localhost:5173/oauth2/redirect
+  secure-cookies: false
