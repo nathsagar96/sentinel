@@ -39,6 +39,9 @@ public class SecurityConfig {
                                 "/api/auth/signup",
                                 "/api/auth/login",
                                 "/api/auth/refresh",
+                                "/api/v1/auth/signup",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh",
                                 "/oauth2/**",
                                 "/login/oauth2/**")
                         .permitAll()
@@ -49,7 +52,8 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler))
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frame -> frame.deny())
                         .contentTypeOptions(Customizer.withDefaults())
                         .httpStrictTransportSecurity(

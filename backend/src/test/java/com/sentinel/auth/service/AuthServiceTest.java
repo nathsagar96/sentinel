@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.sentinel.auth.dto.SignupRequest;
 import com.sentinel.auth.dto.UserResponse;
+import com.sentinel.auth.jwt.JwtTokenProvider;
 import com.sentinel.exception.BadRequestException;
 import com.sentinel.exception.DuplicateResourceException;
 import com.sentinel.exception.ResourceNotFoundException;
@@ -32,14 +33,20 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
     @InjectMocks
     private AuthService authService;
 
     @Test
     void shouldSignupSuccessfully() {
-        var request = new SignupRequest("Test User", "test@example.com", "password123");
+        var request = new SignupRequest("Test User", "test@example.com", "Password1!");
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
-        when(passwordEncoder.encode("password123")).thenReturn("encoded_password");
+        when(passwordEncoder.encode("Password1!")).thenReturn("encoded_password");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return User.builder()
@@ -62,7 +69,7 @@ class AuthServiceTest {
 
     @Test
     void shouldThrow_whenEmailAlreadyExists() {
-        var request = new SignupRequest("Test User", "existing@example.com", "password123");
+        var request = new SignupRequest("Test User", "existing@example.com", "Password1!");
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.signup(request))
@@ -74,7 +81,7 @@ class AuthServiceTest {
 
     @Test
     void shouldLoginSuccessfully() {
-        var request = new com.sentinel.auth.dto.LoginRequest("test@example.com", "password123");
+        var request = new com.sentinel.auth.dto.LoginRequest("test@example.com", "Password1!");
         User user = User.builder()
                 .id(1L)
                 .email("test@example.com")
@@ -83,7 +90,7 @@ class AuthServiceTest {
                 .provider(AuthProvider.LOCAL)
                 .build();
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("password123", "encoded_password")).thenReturn(true);
+        when(passwordEncoder.matches("Password1!", "encoded_password")).thenReturn(true);
 
         UserResponse response = authService.login(request);
 
@@ -94,7 +101,7 @@ class AuthServiceTest {
 
     @Test
     void shouldThrow_whenUserNotFound_login() {
-        var request = new com.sentinel.auth.dto.LoginRequest("notfound@example.com", "password123");
+        var request = new com.sentinel.auth.dto.LoginRequest("notfound@example.com", "Password1!");
         when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(request))
@@ -121,7 +128,7 @@ class AuthServiceTest {
 
     @Test
     void shouldThrow_whenOAuthUserTriesPasswordLogin() {
-        var request = new com.sentinel.auth.dto.LoginRequest("oauth@example.com", "password123");
+        var request = new com.sentinel.auth.dto.LoginRequest("oauth@example.com", "Password1!");
         User user = User.builder()
                 .id(1L)
                 .email("oauth@example.com")
@@ -157,6 +164,72 @@ class AuthServiceTest {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.getCurrentUser(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("User not found");
+    }
+
+    @Test
+    void shouldIssueTokens() {
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", "Test User"))
+                .thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("refresh-token");
+
+        AuthService.AuthTokens tokens = authService.issueTokens(1L, "test@example.com", "Test User");
+
+        assertThat(tokens.accessToken()).isEqualTo("access-token");
+        assertThat(tokens.refreshToken()).isEqualTo("refresh-token");
+        verify(refreshTokenService).storeRefreshToken(1L, "refresh-token");
+    }
+
+    @Test
+    void shouldRefreshTokens() {
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .name("Test User")
+                .provider(AuthProvider.LOCAL)
+                .build();
+        when(jwtTokenProvider.getUserIdFromToken("old-refresh-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("new-refresh-token");
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", "Test User"))
+                .thenReturn("new-access-token");
+
+        AuthService.AuthTokens tokens = authService.refreshTokens("old-refresh-token");
+
+        assertThat(tokens.accessToken()).isEqualTo("new-access-token");
+        assertThat(tokens.refreshToken()).isEqualTo("new-refresh-token");
+        verify(refreshTokenService).verifyRefreshToken("old-refresh-token");
+        verify(refreshTokenService).rotateRefreshToken("old-refresh-token", "new-refresh-token");
+    }
+
+    @Test
+    void shouldRevokeRefreshToken() {
+        authService.revokeRefreshToken("some-token");
+        verify(refreshTokenService).revokeRefreshToken("some-token");
+    }
+
+    @Test
+    void shouldFindById() {
+        User user = User.builder()
+                .id(1L)
+                .email("test@example.com")
+                .name("Test User")
+                .provider(AuthProvider.LOCAL)
+                .build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        UserResponse response = authService.findById(1L);
+
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldThrow_whenUserNotFound_findById() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.findById(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User not found");
     }

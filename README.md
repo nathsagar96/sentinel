@@ -24,7 +24,8 @@
 - **Protected routes** — React Router guards for authenticated pages
 - **Dark / Light theme** — system-aware theme toggle powered by `next-themes`
 - **Dockerized database** — PostgreSQL spun up automatically via Docker Compose
-- **Input validation** — Bean Validation on the backend, real-time feedback on the frontend
+- **Input validation** — Bean Validation with password complexity rules, custom error messages, and safe OAuth2 attribute handling
+- **API versioning** — RESTful API at `/api/v1/auth/` with semantic HTTP status codes (204 No Content for logout)
 - **Observability** — health checks, metrics, structured ECS JSON logging with correlation IDs
 
 ---
@@ -68,14 +69,14 @@ sentinel/
 ├── backend/                  # Spring Boot application
 │   ├── src/
 │   │   └── main/java/com/sentinel/
-│   │       ├── auth/         # Auth controllers, services, DTOs, JWT
+│   │       ├── auth/         # Auth controllers, services, DTOs, JWT, validation
 │   │       ├── config/       # Security & app configuration
 │   │       ├── exception/    # Global exception handling
-│   │       ├── oauth2/       # OAuth2 success/failure handlers
-│   │       └── user/         # User entity & repository
+│   │       ├── oauth2/       # OAuth2 extractors, handlers, GitHub email fetcher
+│   │       └── user/         # User entity, repository, and UserService
 │   ├── src/main/resources/db/migration/  # Flyway migration scripts
 │   ├── compose.yaml          # Docker Compose (PostgreSQL)
-│   ├── .env.example          # Environment variable template
+│   ├── .env                  # Environment variables (loaded via spring.config.import)
 │   └── pom.xml
 └── frontend/                 # React + Vite application
     └── src/
@@ -195,8 +196,11 @@ Secure defaults enabled: `SameSite=Strict` cookies, HSTS (1 year), `X-Frame-Opti
 - **Secure cookies** — `HttpOnly`, `SameSite=Strict`, `Secure` (in production)
 - **Security headers** — `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security` (1 year)
 - **CORS hardening** — Explicit allowed headers (`Content-Type`, `Authorization`, `X-Requested-With`)
-- **Safe OAuth2 failure handling** — Generic error messages, no internal details exposed
-- **Production secrets** — All secrets injected via environment variables, no hardcoded fallbacks
+- **Password complexity** — Custom `@ValidPassword` constraint requiring uppercase, digit, and special character
+- **Safe OAuth2 handling** — Extensible provider registry, safe attribute casting, isolated GitHub email fetching
+- **Safe error messages** — Generic error messages, no internal details exposed
+- **Optimistic locking** — `@Version` on User entity prevents lost updates
+- **Production secrets** — All secrets injected via environment variables, loaded via native Spring Boot `.env` support
 
 ---
 
@@ -287,9 +291,11 @@ The backend produces structured JSON logs in **Elastic Common Schema (ECS)** for
 
 | Method | Endpoint | Auth | Description |
 | --- | --- | --- | --- |
-| `POST` | `/api/auth/signup` | Public | Register a new user |
-| `POST` | `/api/auth/login` | Public | Login with email & password |
-| `GET` | `/api/auth/me` | JWT | Get current user profile |
+| `POST` | `/api/v1/auth/signup` | Public | Register a new user |
+| `POST` | `/api/v1/auth/login` | Public | Login with email & password |
+| `POST` | `/api/v1/auth/refresh` | Public | Refresh access token |
+| `POST` | `/api/v1/auth/logout` | JWT | Logout (returns 204 No Content) |
+| `GET` | `/api/v1/auth/me` | JWT | Get current user profile |
 | `GET` | `/oauth2/authorization/google` | Public | Initiate Google OAuth2 flow |
 | `GET` | `/oauth2/authorization/github` | Public | Initiate GitHub OAuth2 flow |
 | `GET` | `/actuator/health` | Public | Application health status |

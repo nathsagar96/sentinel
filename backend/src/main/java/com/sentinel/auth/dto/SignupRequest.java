@@ -1,10 +1,19 @@
 package com.sentinel.auth.dto;
 
+import com.sentinel.auth.validation.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record SignupRequest(
-        @NotBlank @Size(min = 2, max = 100) String name,
-        @NotBlank @Email String email,
-        @NotBlank @Size(min = 8, max = 100) String password) {}
+        @NotBlank(message = "Name is required")
+        @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+        String name,
+
+        @NotBlank(message = "Email is required") @Email(message = "Must be a valid email address")
+        String email,
+
+        @NotBlank(message = "Password is required")
+        @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
+        @ValidPassword
+        String password) {}

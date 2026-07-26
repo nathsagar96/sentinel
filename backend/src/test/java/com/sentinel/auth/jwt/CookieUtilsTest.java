@@ -41,7 +41,7 @@ class CookieUtilsTest {
         assertThat(cookie.getName()).isEqualTo("refresh_token");
         assertThat(cookie.getValue()).isEqualTo("sample-token");
         assertThat(cookie.isHttpOnly()).isTrue();
-        assertThat(cookie.getPath()).isEqualTo("/api/auth/refresh");
+        assertThat(cookie.getPath()).isEqualTo("/api/v1/auth/refresh");
         assertThat(cookie.getMaxAge()).isEqualTo(Duration.ofDays(7));
         assertThat(cookie.getSameSite()).isEqualTo("Strict");
     }
