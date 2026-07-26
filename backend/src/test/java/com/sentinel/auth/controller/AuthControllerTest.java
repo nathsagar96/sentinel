@@ -48,14 +48,14 @@ class AuthControllerTest {
 
     @Test
     void shouldSignupSuccessfully() throws Exception {
-        var request = new SignupRequest("Test User", "test@example.com", "password123");
+        var request = new SignupRequest("Test User", "test@example.com", "Password1!");
         var response = new UserResponse(1L, "test@example.com", "Test User", null, AuthProvider.LOCAL);
         when(authService.signup(any(SignupRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"Test User","email":"test@example.com","password":"password123"}
+                                {"name":"Test User","email":"test@example.com","password":"Password1!"}
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))

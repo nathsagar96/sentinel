@@ -37,9 +37,9 @@ class AuthServiceTest {
 
     @Test
     void shouldSignupSuccessfully() {
-        var request = new SignupRequest("Test User", "test@example.com", "password123");
+        var request = new SignupRequest("Test User", "test@example.com", "Password1!");
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
-        when(passwordEncoder.encode("password123")).thenReturn("encoded_password");
+        when(passwordEncoder.encode("Password1!")).thenReturn("encoded_password");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             return User.builder()
@@ -62,7 +62,7 @@ class AuthServiceTest {
 
     @Test
     void shouldThrow_whenEmailAlreadyExists() {
-        var request = new SignupRequest("Test User", "existing@example.com", "password123");
+        var request = new SignupRequest("Test User", "existing@example.com", "Password1!");
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.signup(request))
@@ -74,7 +74,7 @@ class AuthServiceTest {
 
     @Test
     void shouldLoginSuccessfully() {
-        var request = new com.sentinel.auth.dto.LoginRequest("test@example.com", "password123");
+        var request = new com.sentinel.auth.dto.LoginRequest("test@example.com", "Password1!");
         User user = User.builder()
                 .id(1L)
                 .email("test@example.com")
@@ -83,7 +83,7 @@ class AuthServiceTest {
                 .provider(AuthProvider.LOCAL)
                 .build();
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("password123", "encoded_password")).thenReturn(true);
+        when(passwordEncoder.matches("Password1!", "encoded_password")).thenReturn(true);
 
         UserResponse response = authService.login(request);
 
@@ -94,7 +94,7 @@ class AuthServiceTest {
 
     @Test
     void shouldThrow_whenUserNotFound_login() {
-        var request = new com.sentinel.auth.dto.LoginRequest("notfound@example.com", "password123");
+        var request = new com.sentinel.auth.dto.LoginRequest("notfound@example.com", "Password1!");
         when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(request))
@@ -121,7 +121,7 @@ class AuthServiceTest {
 
     @Test
     void shouldThrow_whenOAuthUserTriesPasswordLogin() {
-        var request = new com.sentinel.auth.dto.LoginRequest("oauth@example.com", "password123");
+        var request = new com.sentinel.auth.dto.LoginRequest("oauth@example.com", "Password1!");
         User user = User.builder()
                 .id(1L)
                 .email("oauth@example.com")

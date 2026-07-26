@@ -8,21 +8,26 @@ public record OAuth2UserInfo(String name, String email, String avatarUrl, String
         return switch (registrationId.toLowerCase()) {
             case "google" ->
                 new OAuth2UserInfo(
-                        (String) attributes.get("name"),
-                        (String) attributes.get("email"),
-                        (String) attributes.get("picture"),
-                        (String) attributes.get("sub"),
+                        asString(attributes, "name"),
+                        asString(attributes, "email"),
+                        asString(attributes, "picture"),
+                        asString(attributes, "sub"),
                         AuthProvider.GOOGLE);
             case "github" ->
                 new OAuth2UserInfo(
-                        attributes.get("name") != null
-                                ? (String) attributes.get("name")
-                                : (String) attributes.get("login"),
-                        (String) attributes.get("email"),
-                        (String) attributes.get("avatar_url"),
-                        String.valueOf(attributes.get("id")),
+                        asString(attributes, "name") != null
+                                ? asString(attributes, "name")
+                                : asString(attributes, "login"),
+                        asString(attributes, "email"),
+                        asString(attributes, "avatar_url"),
+                        asString(attributes, "id"),
                         AuthProvider.GITHUB);
             default -> throw new IllegalArgumentException("Unsupported provider: " + registrationId);
         };
+    }
+
+    private static String asString(Map<String, Object> attrs, String key) {
+        Object val = attrs.get(key);
+        return val instanceof String s ? s : val != null ? String.valueOf(val) : null;
     }
 }
